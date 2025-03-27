@@ -4,3 +4,4 @@ fpdf==1.7.2
 transformers==4.39.1
 torch==2.2.1
 sentencepiece==0.2.0
+mysql-connector-python==8.0.33
