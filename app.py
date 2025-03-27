@@ -6,7 +6,6 @@ from fpdf import FPDF
 import unicodedata
 import re
 import io
-from transformers import pipeline
 
 # Exibe login antes de tudo
 exibir_login()
@@ -31,12 +30,6 @@ def salvar_resposta_pdf_memoria(pergunta, resposta):
 def carregar_pdf(caminho):
     return pdfplumber.open(caminho)
 
-@st.cache_resource
-def carregar_modelo_qa():
-    return pipeline("question-answering", model="deepset/roberta-base-squad2")
-
-qa_modelo = carregar_modelo_qa()
-
 def mapear_clausulas(pdf):
     clausulas = []
     for i, page in enumerate(pdf.pages):
@@ -56,21 +49,6 @@ def extrair_corpo_clausula_pagina(pdf, titulo, pagina_inicial):
     if match:
         return match.group(1).strip(), match.group(2).strip()
     return titulo, "Não foi possível localizar o conteúdo da cláusula."
-
-def responder_por_bloco(pergunta, texto_completo, tamanho_bloco=1000):
-    blocos = [texto_completo[i:i+tamanho_bloco] for i in range(0, len(texto_completo), tamanho_bloco)]
-    melhores = []
-    for bloco in blocos:
-        try:
-            resposta = qa_modelo(question=pergunta, context=bloco)
-            if resposta["score"] > 0.3 and resposta["answer"].strip():
-                melhores.append(resposta)
-        except:
-            continue
-    if melhores:
-        melhores.sort(key=lambda x: x["score"], reverse=True)
-        return melhores[0]["answer"]
-    return "Não foi possível localizar uma resposta confiável no documento."
 
 # Interface
 st.image("img/logo1.png", width=160)
@@ -108,48 +86,6 @@ if pdf_escolhido:
         if st.button("Salvar cláusula como PDF"):
             buffer = salvar_resposta_pdf_memoria(titulo, corpo)
             st.download_button("📄 Baixar PDF da Cláusula", buffer, file_name=f"resposta_{usuario}.pdf")
-
-    # Busca por palavra-chave
-    st.markdown("---")
-    st.subheader("🔍 Buscar por palavra-chave no PDF")
-
-    busca = st.text_input("Digite a palavra ou frase que deseja buscar:")
-    if busca:
-        resultados = []
-        for i, page in enumerate(pdf.pages[:10]):  # limita a 10 páginas
-            texto = page.extract_text()
-            if texto and re.search(re.escape(busca), texto, re.IGNORECASE):
-                trecho = re.findall(rf'(.{{0,60}}{re.escape(busca)}.{{0,60}})', texto, re.IGNORECASE)
-                for t in trecho:
-                    resultados.append((i + 1, t.strip()))
-
-        if resultados:
-            st.success(f"Foram encontrados {len(resultados)} trechos com a palavra '{busca}':")
-            for pagina, trecho in resultados:
-                st.markdown(f"**Página {pagina}**: {trecho}...")
-        else:
-            st.warning("Nenhum resultado encontrado.")
-
-    # Pergunta com IA
-    st.markdown("---")
-    st.subheader("🧐 Fazer uma pergunta sobre o conteúdo do PDF")
-
-    pergunta_usuario = st.text_input("Digite sua pergunta:")
-    if pergunta_usuario:
-        st.info("Lendo o conteúdo do PDF...")
-        texto_pdf_completo = ""
-        for page in pdf.pages[:10]:  # limita a 10 páginas
-            texto = page.extract_text()
-            if texto:
-                texto_pdf_completo += texto.replace("-\n", "").replace("\n", " ") + "\n"
-
-        st.success("Texto carregado. Gerando resposta...")
-        resposta_ia = responder_por_bloco(pergunta_usuario, texto_pdf_completo)
-        st.markdown(f"**Resposta:** {resposta_ia}")
-
-        if st.button("Salvar resposta em PDF"):
-            buffer = salvar_resposta_pdf_memoria(pergunta_usuario, resposta_ia)
-            st.download_button("📄 Baixar resposta", buffer, file_name=f"resposta_{usuario}.pdf")
 
 # Rodapé
 st.markdown(
