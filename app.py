@@ -51,13 +51,6 @@ def extrair_corpo_clausula_pagina(pdf, titulo, pagina_inicial):
         return match.group(1).strip(), match.group(2).strip()
     return titulo, "Não foi possível localizar o conteúdo da cláusula."
 
-# Modelo de perguntas e respostas
-@st.cache_resource
-def carregar_modelo_qa():
-    return pipeline("question-answering", model="deepset/roberta-base-squad2")
-
-qa_modelo = carregar_modelo_qa()
-
 def responder_por_bloco(pergunta, texto_completo, tamanho_bloco=1000):
     blocos = [texto_completo[i:i+tamanho_bloco] for i in range(0, len(texto_completo), tamanho_bloco)]
     melhores = []
