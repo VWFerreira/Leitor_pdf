@@ -132,7 +132,7 @@ if pdf_escolhido:
 
     # Pergunta com IA
     st.markdown("---")
-    st.subheader("😮 Fazer uma pergunta sobre o conteúdo do PDF")
+    st.subheader("🧐 Fazer uma pergunta sobre o conteúdo do PDF")
 
     pergunta_usuario = st.text_input("Digite sua pergunta:")
     if pergunta_usuario:
