@@ -1,25 +1,18 @@
 import streamlit as st
-import mysql.connector
 
-# Função para verificar o login no MySQL
-def verificar_login(usuario, senha):
-    try:
-        conexao = mysql.connector.connect(
-            host="localhost",
-            user="root",  
-            password="13312208",
-            database="app_pdf"
-        )
-        cursor = conexao.cursor()
-        consulta = "SELECT * FROM usuarios WHERE usuario=%s AND senha=%s"
-        cursor.execute(consulta, (usuario, senha))
-        resultado = cursor.fetchone()
-        conexao.close()
-        return resultado is not None
-    except:
-        return False
+usuarios = {
+    "user 1": "7eKd92Lm",
+    "user 2": "fP3xZq1R",
+    "user 3": "Yt9N4s8V",
+    "user 4": "qJ6zLmST",
+    "user 5": "Wm82Rg7A",
+    "user 6": "Dt17Xp9L",
+    "user 7": "AkSQw9D",
+    "user 8": "Ns49Mt2J",
+    "user 9": "Lv30Hr6C",
+    "user 10": "12345"
+}
 
-# Interface de login
 def exibir_login():
     if 'autenticado' not in st.session_state:
         st.session_state.autenticado = False
@@ -29,12 +22,12 @@ def exibir_login():
         st.title("Login")
         usuario = st.text_input("Usuário")
         senha = st.text_input("Senha", type="password")
+
         if st.button("Entrar"):
-            if verificar_login(usuario, senha):
+            if usuario in usuarios and usuarios[usuario] == senha:
                 st.session_state.autenticado = True
                 st.success("Login realizado com sucesso!")
                 st.rerun()
-
             else:
                 st.error("Usuário ou senha incorretos")
 
@@ -49,6 +42,7 @@ def exibir_login():
         )
 
         st.stop()
+
 
 # Executar login se rodar diretamente
 if __name__ == "__main__":
