@@ -87,6 +87,24 @@ if pdf_escolhido:
             buffer = salvar_resposta_pdf_memoria(titulo, corpo)
             st.download_button("📄 Baixar PDF da Cláusula", buffer, file_name=f"resposta_{usuario}.pdf")
 
+    # Busca leve por palavra-chave
+    st.markdown("---")
+    st.subheader("🔍 Buscar palavra-chave")
+    palavra_chave = st.text_input("Digite a palavra-chave:")
+    if palavra_chave:
+        resultados = []
+        for i, page in enumerate(pdf.pages):
+            texto = page.extract_text()
+            if texto and palavra_chave.lower() in texto.lower():
+                resultados.append((i+1, texto.strip()[:200]))
+
+        if resultados:
+            st.success(f"Encontrado em {len(resultados)} página(s):")
+            for pagina, trecho in resultados:
+                st.markdown(f"**Página {pagina}:** {trecho}...")
+        else:
+            st.warning("Palavra não encontrada no documento.")
+
 # Rodapé
 st.markdown(
     """
@@ -97,3 +115,4 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
